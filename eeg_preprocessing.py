@@ -45,7 +45,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from eeg_nan_sub import (
+from eeg_imputation import (
     impute_eeg_window,
     NanReport,
     MontageSpec,
@@ -383,7 +383,7 @@ def _load_window(
 
 
 # ---------------------------------------------------------------------------
-# Convenience wrapper matching the old eeg_nan_sub.py API
+# Convenience wrapper matching the old eeg_imputation.py API
 # (backward compatibility for any code that imports from eeg_nan_sub)
 # ---------------------------------------------------------------------------
 
