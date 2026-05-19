@@ -157,10 +157,10 @@ class EEGBranch(nn.Module):
         self.se = SEBlock1d(128)
 
         # Step 5: pool and embed
-        self.pool = nn.AdaptiveAvgPool1d(4)   # → (B, 128, 4)
+        self.pool = nn.AdaptiveAvgPool1d(5)   # → (B, 125, 5)
         self.head = nn.Sequential(
-            nn.Flatten(),                      # → (B, 512)
-            nn.Linear(512, embed_dim),
+            nn.Flatten(),                      # → (B, 640)
+            nn.Linear(640, embed_dim),
             nn.LayerNorm(embed_dim),
             nn.GELU(),
         )
@@ -184,9 +184,8 @@ class EEGBranch(nn.Module):
         ], dim=1))                                         # (B, 64, T)
         x = self.res_blocks(x)                            # (B, 128, T/8)
         x = self.se(x) * x                                # (B, 128, T/8)
-        x = self.pool(x)                                   # (B, 128, 4)
+        x = self.pool(x)                                   # (B, 128, 5)
         return self.head(x)                                # (B, embed_dim)
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  2D CNN BRANCH — Spectrogram
