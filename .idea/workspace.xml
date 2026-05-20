@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="029d0290-2ed6-4515-a8eb-53ed93f2cfdf" name="Changes" comment="Added RCA, Multimodal CNN">
+    <list default="true" id="029d0290-2ed6-4515-a8eb-53ed93f2cfdf" name="Changes" comment="Line 160, 163:&#10;&#10;Updated pool size 4-&gt;5, 512-&gt;640 (For GPU divisibility)">
+      <change afterPath="$PROJECT_DIR$/hms_model_simple.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hms_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/hms_model.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -188,12 +188,21 @@
       <option name="project" value="LOCAL" />
       <updated>1779214871696</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Line 160, 163:&#10;&#10;Updated pool size 4-&gt;5, 512-&gt;640 (For GPU divisibility)">
+      <option name="closed" value="true" />
+      <created>1779228436713</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1779228436713</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added RCA, Multimodal CNN" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added RCA, Multimodal CNN" />
+    <MESSAGE value="Line 160, 163:&#10;&#10;Updated pool size 4-&gt;5, 512-&gt;640 (For GPU divisibility)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Line 160, 163:&#10;&#10;Updated pool size 4-&gt;5, 512-&gt;640 (For GPU divisibility)" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
