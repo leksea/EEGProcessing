@@ -198,8 +198,8 @@ class SimpleSpectrogramBranch(nn.Module):
     Stem        : Conv2d 6→32, 3×3, stride=2
     DS block 1  : 32→64,  stride=2
     DS block 2  : 64→128, stride=2
-    IR block 1  : 128→128, expand=4, stride=1
-    IR block 2  : 128→128, expand=4, stride=2
+    IR block 1  : 128→128, expand=2, stride=1
+    IR block 2  : 128→128, expand=2, stride=2
     Global pool : AdaptiveAvgPool2d(1)
     Head        : Linear 128→embed_dim
 
