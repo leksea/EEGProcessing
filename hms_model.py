@@ -473,93 +473,85 @@ class HMSDataset(Dataset):
         return len(self.df)
 
     def __getitem__(self, idx):
-        row    = self.df.iloc[idx]
-        eid    = int(row["eeg_id"])
-        offset = int(row["eeg_label_offset_seconds"])
-        stem   = f"{eid}_{offset}"
+        row = self.df.iloc[idx]
+        eid = int(row["eeg_id"])
+        offset = int(row.get("eeg_label_offset_seconds", 0))
+        stem = f"{eid}_{offset}"
 
-        # ── EEG (16 bipolar, z-scored) ────────────────────────
-        eeg = np.load(
-            os.path.join(self.processed_dir, f"{stem}.npy")
-        ).T.astype(np.float32)                  # (16, T)
+        # ── EEG (16 bipolar, z-scored) ────────────────────────────
+        npy = os.path.join(self.processed_dir, f"{stem}.npy")
+        if not os.path.exists(npy):
+            npy = os.path.join(self.processed_dir, f"{eid}_0.npy")
+        if os.path.exists(npy):
+            eeg = np.load(npy).T.astype(np.float32)  # (16, T)
+        else:
+            eeg = np.zeros((EEG_CHANNELS - 1, EEG_LENGTH),
+                           dtype=np.float32)
 
-        # ── EKG from raw parquet ──────────────────────────────
+        # ── EKG from raw parquet ──────────────────────────────────
         ekg = np.zeros((1, eeg.shape[1]), dtype=np.float32)
         if self.eeg_dir:
             ekg_path = os.path.join(self.eeg_dir, f"{eid}.parquet")
             if os.path.exists(ekg_path):
                 try:
-                    raw_df  = pd.read_parquet(ekg_path,
-                                              columns=["EKG"])
-                    t0      = offset * 200
-                    t1      = t0 + 50 * 200
-                    ekg_raw = raw_df["EKG"].values[t0:t1]\
-                                  .astype(np.float32)
-                    ekg_raw = ekg_raw[::2]            # 200→100 Hz
-                    mu      = np.nanmean(ekg_raw)
-                    std     = np.nanstd(ekg_raw) + 1e-8
+                    raw_df = pd.read_parquet(ekg_path, columns=["EKG"])
+                    t0 = offset * 200
+                    t1 = t0 + 50 * 200
+                    ekg_raw = raw_df["EKG"].values[t0:t1].astype(np.float32)
+                    ekg_raw = ekg_raw[::2]  # 200→100 Hz
+                    mu = np.nanmean(ekg_raw)
+                    std = np.nanstd(ekg_raw) + 1e-8
                     ekg_raw = (np.nan_to_num(ekg_raw) - mu) / std
-                    T       = eeg.shape[1]
-                    n       = min(len(ekg_raw), T)
+                    T = eeg.shape[1]
+                    n = min(len(ekg_raw), T)
                     ekg[0, :n] = ekg_raw[:n]
                 except Exception:
                     pass
 
-        # ── Concat → (17, T) ──────────────────────────────────
+        # ── Concat → (17, T) then pad/trim ───────────────────────
         eeg = np.concatenate([eeg, ekg], axis=0)
-        T   = eeg.shape[1]
+        T = eeg.shape[1]
         if T < EEG_LENGTH:
-            eeg = np.pad(eeg, ((0,0),(0, EEG_LENGTH-T)))
+            eeg = np.pad(eeg, ((0, 0), (0, EEG_LENGTH - T)))
         else:
             eeg = eeg[:, :EEG_LENGTH]
 
-        # ── Spectrogram ───────────────────────────────────────
+        # ── Spectrogram ───────────────────────────────────────────
         spec_path = os.path.join(self.spec_dir, f"{stem}_spec.npy")
+        if not os.path.exists(spec_path):
+            spec_path = os.path.join(
+                self.spec_dir, f"{eid}_0_spec.npy")  # ← fallback
 
         if os.path.exists(spec_path):
             spec = np.load(spec_path).astype(np.float32)
-
-            # Ensure shape is (SPEC_CHAINS, SPEC_FREQ, SPEC_TIME)
             if spec.ndim == 3:
                 if spec.shape[0] == SPEC_CHAINS:
-                    pass  # already (C, F, T) — no transpose needed
+                    pass
                 elif spec.shape[2] == SPEC_CHAINS:
-                    spec = spec.transpose(2, 0, 1)  # (F,T,C)→(C,F,T)
+                    spec = spec.transpose(2, 0, 1)
                 else:
                     spec = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
                                     dtype=np.float32)
             else:
                 spec = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
                                 dtype=np.float32)
-
-            # Pad or trim to exact expected size
-            C, F, T = spec.shape
-            if F != SPEC_FREQ or T != SPEC_TIME:
-                out = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
-                               dtype=np.float32)
-                f_min = min(F, SPEC_FREQ)
-                t_min = min(T, SPEC_TIME)
-                out[:, :f_min, :t_min] = spec[:, :f_min, :t_min]
-                spec = out
-
-            # Final safety clamp
-            spec = np.clip(spec, -100.0, 100.0)
-
         else:
             spec = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
                             dtype=np.float32)
+
+        # Pad/trim + safety clamp — once only
         spec = self._pad_or_trim_2d(spec, SPEC_FREQ, SPEC_TIME)
-        # Move nan_to_num to be the LAST operation before returning spec
         spec = np.nan_to_num(spec, nan=0.0, posinf=0.0, neginf=0.0)
-        spec = np.clip(spec, -50.0, 50.0)  # <- hard clamp
+        spec = np.clip(spec, -50.0, 50.0)
 
         if self.augment:
             eeg, spec = self._augment(eeg, spec)
 
-        return (torch.from_numpy(eeg),
-                torch.from_numpy(spec),
-                torch.from_numpy(self.targets[idx]))
-
+        return (
+            torch.from_numpy(eeg),
+            torch.from_numpy(spec),
+            torch.from_numpy(self.targets[idx]),
+        )
     @staticmethod
     def _pad_or_trim_2d(spec, freq, time):
         C, F, T = spec.shape
