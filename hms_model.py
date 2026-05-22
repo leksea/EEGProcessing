@@ -42,8 +42,8 @@ import os
 N_CLASSES    = 6          # seizure, lpd, gpd, lrda, grda, other
 EEG_CHANNELS = 17         # 16 bipolar + 1 EKG
 EEG_LENGTH   = 5000       # 50 s × 100 Hz
-SPEC_FREQ    = 100        # frequency bins
-SPEC_TIME    = 300        # time steps (10-min window)
+SPEC_FREQ    = 50         # frequency bins
+SPEC_TIME    = 150        # time steps (10-min window)
 SPEC_CHAINS  = 6          # LL, LP, RP, RL, LL-RL, LP-RP
 EMBED_DIM    = 128        # shared embedding size
 
