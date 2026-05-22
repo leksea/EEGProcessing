@@ -26,6 +26,7 @@ Public API
 
 from __future__ import annotations
 import torch.nn as nn
+import torch
 import torch.nn.functional as F
 
 # ---------------------------------------------------------------------------
