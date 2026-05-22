@@ -173,7 +173,6 @@ class SimpleEEGBranch(nn.Module):
             nn.Flatten(),                          # (B, 320)
             nn.Linear(64 * 5, embed_dim),
             nn.LayerNorm(embed_dim),
-            nn.Dropout(0.5),  # was 0.3
             nn.GELU(),
         )
 
@@ -188,6 +187,7 @@ class SimpleEEGBranch(nn.Module):
 # ===========================================================================
 #  2-D Spectrogram branch  (simplified)
 # ===========================================================================
+
 
 class SimpleSpectrogramBranch(nn.Module):
     """
@@ -210,12 +210,17 @@ class SimpleSpectrogramBranch(nn.Module):
     def __init__(self, embed_dim: int = EMBED_DIM):
         super().__init__()
 
+        # Add weight initialisation to stem conv
         self.stem = nn.Sequential(
             nn.Conv2d(SPEC_CHAINS, 32, kernel_size=3,
                       stride=2, padding=1, bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
         )
+        # Kaiming init — prevents large activations at layer 1
+        nn.init.kaiming_normal_(
+            self.stem[0].weight, mode="fan_out",
+            nonlinearity="relu")
 
         # Two DS blocks (unchanged — efficient and necessary)
         self.ds_blocks = nn.Sequential(
@@ -225,9 +230,10 @@ class SimpleSpectrogramBranch(nn.Module):
 
         # Two IR blocks with expand_ratio=4 (was 4 blocks, ratio=6)
         # Caps at 128 channels (was 256)
+        # Reduce expand_ratio 4 → 2 — less explosive intermediate activations
         self.ir_blocks = nn.Sequential(
-            InvertedResidual2d(128, 128, stride=1, expand_ratio=4),
-            InvertedResidual2d(128, 128, stride=2, expand_ratio=4),
+            InvertedResidual2d(128, 128, stride=1, expand_ratio=2),
+            InvertedResidual2d(128, 128, stride=2, expand_ratio=2),
         )
 
         self.pool = nn.AdaptiveAvgPool2d(1)
@@ -236,9 +242,13 @@ class SimpleSpectrogramBranch(nn.Module):
             nn.Flatten(),                          # (B, 128)
             nn.Linear(128, embed_dim),
             nn.LayerNorm(embed_dim),
-            nn.Dropout(0.5),  # was 0.3
             nn.GELU(),
         )
+
+        for m in self.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                nn.init.ones_(m.weight)
+                nn.init.zeros_(m.bias)
 
     def forward(self, x):
         # x: (B, 6, F, T)
@@ -247,6 +257,7 @@ class SimpleSpectrogramBranch(nn.Module):
         x = self.ir_blocks(x)
         x = self.pool(x)
         return self.head(x)
+
 
 
 # ===========================================================================
