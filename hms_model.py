@@ -518,18 +518,37 @@ class HMSDataset(Dataset):
 
         if os.path.exists(spec_path):
             spec = np.load(spec_path).astype(np.float32)
-            spec = np.nan_to_num(spec, nan=0.0, posinf=0.0, neginf=0.0)  # Fix nan in the spectogram
+            spec = np.nan_to_num(spec, nan=0.0, posinf=0.0, neginf=0.0)
 
+            # Ensure shape is (SPEC_CHAINS, SPEC_FREQ, SPEC_TIME)
             if spec.ndim == 3:
-                if spec.shape[2] == SPEC_CHAINS:
+                if spec.shape[0] == SPEC_CHAINS:
+                    pass  # already (C, F, T) — no transpose needed
+                elif spec.shape[2] == SPEC_CHAINS:
                     spec = spec.transpose(2, 0, 1)  # (F,T,C)→(C,F,T)
-                elif spec.shape[0] != SPEC_CHAINS:
+                else:
                     spec = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
                                     dtype=np.float32)
+            else:
+                spec = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
+                                dtype=np.float32)
+
+            # Pad or trim to exact expected size
+            C, F, T = spec.shape
+            if F != SPEC_FREQ or T != SPEC_TIME:
+                out = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
+                               dtype=np.float32)
+                f_min = min(F, SPEC_FREQ)
+                t_min = min(T, SPEC_TIME)
+                out[:, :f_min, :t_min] = spec[:, :f_min, :t_min]
+                spec = out
+
+            # Final safety clamp
+            spec = np.clip(spec, -100.0, 100.0)
+
         else:
             spec = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
                             dtype=np.float32)
-
         spec = self._pad_or_trim_2d(spec, SPEC_FREQ, SPEC_TIME)
 
         if self.augment:
