@@ -37,8 +37,8 @@ N_CLASSES    = 6
 EEG_CHANNELS = 17       # 16 bipolar + 1 EKG
 EEG_LENGTH   = 5000     # 50 s × 100 Hz
 SPEC_CHAINS  = 6        # LL, LP, RP, RL, LL-RL, LP-RP
-SPEC_FREQ    = 100
-SPEC_TIME    = 300
+SPEC_FREQ    = 50
+SPEC_TIME    = 150
 EMBED_DIM    = 128
 
 
@@ -173,6 +173,7 @@ class SimpleEEGBranch(nn.Module):
             nn.Flatten(),                          # (B, 320)
             nn.Linear(64 * 5, embed_dim),
             nn.LayerNorm(embed_dim),
+            nn.Dropout(0.5),  # was 0.3
             nn.GELU(),
         )
 
@@ -235,6 +236,7 @@ class SimpleSpectrogramBranch(nn.Module):
             nn.Flatten(),                          # (B, 128)
             nn.Linear(128, embed_dim),
             nn.LayerNorm(embed_dim),
+            nn.Dropout(0.5),  # was 0.3
             nn.GELU(),
         )
 
@@ -260,7 +262,7 @@ class SimpleEEGOnlyModel(nn.Module):
         self.head   = nn.Sequential(
             nn.Linear(embed_dim, 64),
             nn.GELU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.5),
             nn.Linear(64, N_CLASSES),
         )
 
@@ -277,7 +279,7 @@ class SimpleSpecOnlyModel(nn.Module):
         self.head   = nn.Sequential(
             nn.Linear(embed_dim, 64),
             nn.GELU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.5),
             nn.Linear(64, N_CLASSES),
         )
 
@@ -303,7 +305,7 @@ class SimpleHMSModel(nn.Module):
 
     def __init__(self,
                  embed_dim : int   = EMBED_DIM,
-                 dropout   : float = 0.3):
+                 dropout   : float = 0.5):
         super().__init__()
         self.eeg_branch  = SimpleEEGBranch(embed_dim)
         self.spec_branch = SimpleSpectrogramBranch(embed_dim)

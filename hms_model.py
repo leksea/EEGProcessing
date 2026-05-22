@@ -515,8 +515,11 @@ class HMSDataset(Dataset):
 
         # ── Spectrogram ───────────────────────────────────────
         spec_path = os.path.join(self.spec_dir, f"{stem}_spec.npy")
+
         if os.path.exists(spec_path):
             spec = np.load(spec_path).astype(np.float32)
+            spec = np.nan_to_num(spec, nan=0.0, posinf=0.0, neginf=0.0)  # Fix nan in the spectogram
+
             if spec.ndim == 3:
                 if spec.shape[2] == SPEC_CHAINS:
                     spec = spec.transpose(2, 0, 1)  # (F,T,C)→(C,F,T)

@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="029d0290-2ed6-4515-a8eb-53ed93f2cfdf" name="Changes" comment="Simple models (computational efficiency)&#10;Check for modules before running notebook">
-      <change afterPath="$PROJECT_DIR$/hms_submission.py" afterDir="false" />
+    <list default="true" id="029d0290-2ed6-4515-a8eb-53ed93f2cfdf" name="Changes" comment="Added submission script">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hms_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/hms_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hms_model_simple.py" beforeDir="false" afterPath="$PROJECT_DIR$/hms_model_simple.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -212,7 +213,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779320820107</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Added submission script">
+      <option name="closed" value="true" />
+      <created>1779404892373</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1779404892373</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -220,7 +229,8 @@
     <MESSAGE value="Line 160, 163:&#10;&#10;Updated pool size 4-&gt;5, 512-&gt;640 (For GPU divisibility)" />
     <MESSAGE value="Simple models (computational efficiency)" />
     <MESSAGE value="Simple models (computational efficiency)&#10;Check for modules before running notebook" />
-    <option name="LAST_COMMIT_MESSAGE" value="Simple models (computational efficiency)&#10;Check for modules before running notebook" />
+    <MESSAGE value="Added submission script" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added submission script" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
