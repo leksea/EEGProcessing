@@ -518,7 +518,6 @@ class HMSDataset(Dataset):
 
         if os.path.exists(spec_path):
             spec = np.load(spec_path).astype(np.float32)
-            spec = np.nan_to_num(spec, nan=0.0, posinf=0.0, neginf=0.0)
 
             # Ensure shape is (SPEC_CHAINS, SPEC_FREQ, SPEC_TIME)
             if spec.ndim == 3:
@@ -550,6 +549,9 @@ class HMSDataset(Dataset):
             spec = np.zeros((SPEC_CHAINS, SPEC_FREQ, SPEC_TIME),
                             dtype=np.float32)
         spec = self._pad_or_trim_2d(spec, SPEC_FREQ, SPEC_TIME)
+        # Move nan_to_num to be the LAST operation before returning spec
+        spec = np.nan_to_num(spec, nan=0.0, posinf=0.0, neginf=0.0)
+        spec = np.clip(spec, -50.0, 50.0)  # <- hard clamp
 
         if self.augment:
             eeg, spec = self._augment(eeg, spec)
